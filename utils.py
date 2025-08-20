@@ -445,7 +445,7 @@ def replace_placeholders(text, user=None, bot=None, guild=None, channel=None):
             '{user_name}': user.name,
             '{user_id}': str(user.id),
             '{user_avatar}': user.display_avatar.url,
-            '{user_discriminator}': user.discriminator
+            '{user_discriminator}': user.discriminator if hasattr(user, 'discriminator') else '0'
         })
     
     if bot:
@@ -485,36 +485,46 @@ def build_embed_from_data(embed_data, user=None, bot=None, guild=None, channel=N
     
     embed = discord.Embed(title=title, description=description)
     
-    # Set color
-    if embed_data.get('color'):
-        if isinstance(embed_data['color'], int):
-            embed.color = discord.Color(embed_data['color'])
-        elif isinstance(embed_data['color'], str):
+    # Set color (handle both old and new formats)
+    color_value = embed_data.get('color')
+    if color_value is not None and color_value != "":
+        if isinstance(color_value, int):
+            embed.color = discord.Color(color_value)
+        elif isinstance(color_value, str):
             try:
-                embed.color = discord.Color(int(embed_data['color'], 16))
-            except ValueError:
+                # Remove # if present and convert hex to int
+                if color_value.startswith('#'):
+                    color_value = color_value[1:]
+                embed.color = discord.Color(int(color_value, 16))
+            except (ValueError, TypeError):
                 pass
     
     # Set thumbnail
-    if embed_data.get('thumbnail'):
-        thumbnail_url = replace_placeholders(embed_data['thumbnail'], user, bot, guild, channel)
+    thumbnail_url = embed_data.get('thumbnail')
+    if thumbnail_url:
+        thumbnail_url = replace_placeholders(thumbnail_url, user, bot, guild, channel)
         embed.set_thumbnail(url=thumbnail_url)
     
     # Set image
-    if embed_data.get('image'):
-        image_url = replace_placeholders(embed_data['image'], user, bot, guild, channel)
+    image_url = embed_data.get('image')
+    if image_url:
+        image_url = replace_placeholders(image_url, user, bot, guild, channel)
         embed.set_image(url=image_url)
     
-    # Set footer
-    if embed_data.get('footer'):
-        footer_text = replace_placeholders(embed_data['footer'], user, bot, guild, channel)
+    # Set footer (handle both old and new formats)
+    footer_text = embed_data.get('footer')
+    if footer_text:
+        footer_text = replace_placeholders(footer_text, user, bot, guild, channel)
         embed.set_footer(text=footer_text)
     
     # Set author
     author_data = embed_data.get('author', {})
-    if author_data.get('name'):
-        author_name = replace_placeholders(author_data['name'], user, bot, guild, channel)
-        author_icon = replace_placeholders(author_data.get('icon_url', ''), user, bot, guild, channel) if author_data.get('icon_url') else None
+    author_name = author_data.get('name') or embed_data.get('author_name')
+    if author_name:
+        author_name = replace_placeholders(author_name, user, bot, guild, channel)
+        author_icon = author_data.get('icon_url') or embed_data.get('author_icon')
+        if author_icon:
+            author_icon = replace_placeholders(author_icon, user, bot, guild, channel)
         embed.set_author(name=author_name, icon_url=author_icon)
     
     # Set timestamp
