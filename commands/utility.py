@@ -311,59 +311,6 @@ async def invite(ctx):
     )
     await ctx.send(embed=embed)
 
-@commands.hybrid_command(name="calculator", description="Calculate math expressions")
-@app_commands.describe(expression="Math expression to calculate")
-async def calculator(ctx, *, expression: str):
-    try:
-        # Safe evaluation for basic math
-        allowed_chars = set('0123456789+-*/.() ')
-        if not all(c in allowed_chars for c in expression):
-            embed = create_embed(f"{get_emoji('cross')} Invalid Expression", "Only basic math operations are allowed!")
-            return await ctx.send(embed=embed)
-        
-        result = eval(expression)
-        embed = create_embed("🧮 Calculator", f"**Expression:** `{expression}`\n**Result:** `{result}`")
-        await ctx.send(embed=embed)
-    except Exception as e:
-        embed = create_embed(f"{get_emoji('cross')} Error", f"Invalid math expression: {str(e)}")
-        await ctx.send(embed=embed)
-
-@commands.hybrid_command(name="weather", description="Get weather information")
-@app_commands.describe(location="City name to get weather for")
-async def weather(ctx, *, location: str):
-    embed = create_embed(
-        "🌤️ Weather Service", 
-        f"Weather service for **{location}** is currently unavailable.\n"
-        f"Please use a weather website or app for current conditions."
-    )
-    await ctx.send(embed=embed)
-
-@commands.hybrid_command(name="translate", description="Translate text to English")
-@app_commands.describe(text="Text to translate")
-async def translate(ctx, *, text: str):
-    embed = create_embed(
-        "🌐 Translation Service",
-        f"**Original:** {text[:200]}{'...' if len(text) > 200 else ''}\n\n"
-        f"Translation service is currently unavailable.\n"
-        f"Please use Google Translate or similar services."
-    )
-    await ctx.send(embed=embed)
-
-@commands.hybrid_command(name="qrcode", description="Generate QR code for text")
-@app_commands.describe(text="Text to encode in QR code")
-async def qrcode(ctx, *, text: str):
-    if len(text) > 500:
-        embed = create_embed(f"{get_emoji('cross')} Text Too Long", "Text must be 500 characters or less!")
-        return await ctx.send(embed=embed)
-    
-    embed = create_embed(
-        "📱 QR Code Generator",
-        f"**Text:** {text[:100]}{'...' if len(text) > 100 else ''}\n\n"
-        f"QR code generation is currently unavailable.\n"
-        f"Please use an online QR code generator."
-    )
-    await ctx.send(embed=embed)
-
 async def setup(bot):
     """Add utility commands to bot"""
     bot.add_command(userinfo)
@@ -376,7 +323,3 @@ async def setup(bot):
     bot.add_command(snipe)
     bot.add_command(afk)
     bot.add_command(invite)
-    bot.add_command(calculator)
-    bot.add_command(weather)
-    bot.add_command(translate)
-    bot.add_command(qrcode)
