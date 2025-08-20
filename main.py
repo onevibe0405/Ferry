@@ -550,11 +550,6 @@ class HelpSelect(Select):
                 value="mod"
             ),
             discord.SelectOption(
-                label="🔊 Music",
-                description="Music commands",
-                value="music"
-            ),
-            discord.SelectOption(
                 label="👑 Roles",
                 description="Role management commands",
                 value="roles"
@@ -582,7 +577,7 @@ class HelpSelect(Select):
 
         if value == "mod":
             embed = create_embed(
-                "<a:Kabu_star:1400372359160008744> Moderation Commands",
+                "<a:star:1407644764802912286> Moderation Commands",
                 "• Ban — Ban a user\n"
                 "• Kick — Kick a user\n"
                 "• Mute — Temp mute a user\n"
@@ -605,15 +600,9 @@ class HelpSelect(Select):
                 "• Setprefix — change prefix"
             )
 
-        elif value == "music":
-            embed = create_embed(
-                "<a:Kabu_star:1400372359160008744> Music Commands",
-                "Music functionality has been disabled to avoid hosting complications."
-            )
-
         elif value == "roles":
             embed = create_embed(
-                "<a:Kabu_star:1400372359160008744> Role Management",
+                "<a:star:1407644764802912286> Role Management",
                 "• Addrole — Add role to user\n"
                 "• Removerole — Remove role from user\n"
                 "• Createrole — Create a new role\n"
@@ -633,7 +622,7 @@ class HelpSelect(Select):
 
         elif value == "fun":
             embed = create_embed(
-                "<a:Kabu_star:1400372359160008744> Fun & Social",
+                "<a:star:1407644764802912286> Fun & Social",
                 "• Coinflip — Flip a coin\n"
                 "• Dice — Roll a dice\n"
                 "• 8ball — Ask the magic 8ball\n"
@@ -645,7 +634,7 @@ class HelpSelect(Select):
 
         elif value == "util":
             embed = create_embed(
-                "<a:Kabu_star:1400372359160008744> Utility & Info",
+                "<a:star:1407644764802912286> Utility & Info",
                 "• Afk — Set afk\n"
                 "• Remind — Set a reminder\n"
                 "• Userinfo — Get user info\n"
@@ -666,7 +655,7 @@ class HelpSelect(Select):
 
         elif value == "setup":
             embed = create_embed(
-                "<a:Kabu_star:1400372359160008744> Server Setup & Management",
+                "<a:star:1407644764802912286> Server Setup & Management",
                 "• Embedadd — Create & save custom embed\n"
                 "• Embededit — Edit saved embed\n"
                 "• Embeddel — Delete saved embed\n"
@@ -694,14 +683,14 @@ bot = ModBot()
 @bot.hybrid_command(name="help", description="Show help menu")
 async def help(ctx):
     embed = create_embed(
-        "<a:flowers:1400314233412915304>**Kabu Help Menu**<a:flowers:1400314233412915304>",
+        "<a:flowers:1407646827481927680>**Kabu Help Menu**<a:flowers:1407646827481927680>",
         "Hey there! I'm **Kabu**, your friendly Discord companion.\n\n"
-        "<a:dot:1400319057894441030> **Prefix:** `!`\n"
-        "<a:dot:1400319057894441030> **Total Commands:** 80+\n\n"
-        "<:kabu_dot:1400186000940208332> **Moderation & Roles** — keep server safe\n"
-        "<:kabu_dot:1400186000940208332> **Fun & Social** — play & vibe\n"
-        "<:kabu_dot:1400186000940208332> **Utility & Info** — quick tools & info\n\n"
-        "<:heart_blue3:1400314263985197168> Tip: Use dropdown below to browse commands!"
+        "<a:nc_dot:1407646088969719888> **Prefix:** `!`\n"
+        "<a:nc_dot:1407646088969719888> **Total Commands:** 80+\n\n"
+        "<a:dot:1407642445616906350> **Moderation & Roles** — keep server safe\n"
+        "<a:dot:1407642445616906350> **Fun & Social** — play & vibe\n"
+        "<a:dot:1407642445616906350> **Utility & Info** — quick tools & info\n\n"
+        "<:heart_blue3:1407643679660839033> Tip: Use dropdown below to browse commands!"
     )
     embed.set_footer(text="Designed & crafted by Onevibe 🫧")
     await ctx.send(embed=embed, view=HelpView())
