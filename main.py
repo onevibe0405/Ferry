@@ -567,11 +567,6 @@ class HelpSelect(Select):
                 value="mod"
             ),
             discord.SelectOption(
-                label="🔊 Music",
-                description="Music commands",
-                value="music"
-            ),
-            discord.SelectOption(
                 label="👑 Roles",
                 description="Role management commands",
                 value="roles"
