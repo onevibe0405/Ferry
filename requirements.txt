@@ -1,0 +1,7 @@
+
+discord.py>=2.5.2
+aiohttp>=3.12.15
+flask>=3.1.1
+requests>=2.32.4
+psutil>=6.1.0
+python-dotenv>=1.1.1
