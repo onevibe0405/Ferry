@@ -404,41 +404,58 @@ class ModBot(commands.Bot):
     async def on_member_join(self, member):
         guild_id = str(member.guild.id)
         
+        # Determine which autorole to use based on member type
+        autorole_key = 'autoroles_bot' if member.bot else 'autoroles'
+        member_type = "bot" if member.bot else "human"
+        
         # Handle autorole with enhanced error checking
-        if 'autoroles' in self.data and guild_id in self.data['autoroles']:
+        if autorole_key in self.data and guild_id in self.data[autorole_key]:
             try:
-                role_data = self.data['autoroles'][guild_id]
+                role_data = self.data[autorole_key][guild_id]
                 
-                # Handle both string and integer role IDs
+                # Handle both old single role format and new multiple roles format
+                role_ids = []
                 if isinstance(role_data, str):
-                    role_id = int(role_data)
+                    role_ids = [int(role_data)]
+                elif isinstance(role_data, list):
+                    role_ids = [int(role_id) for role_id in role_data]
                 else:
-                    role_id = role_data
+                    role_ids = [role_data]  # Direct integer
                 
-                role = member.guild.get_role(role_id)
+                roles_assigned = 0
+                total_roles = len(role_ids)
                 
-                if role:
-                    # Check if bot has permission to assign the role
-                    if member.guild.me.guild_permissions.manage_roles:
-                        # More lenient hierarchy check - allow same position roles
-                        if role.position <= member.guild.me.top_role.position and role != member.guild.me.top_role:
-                            await member.add_roles(role, reason="Autorole assignment")
-                            print(f"✅ Autorole '{role.name}' successfully added to {member.display_name}")
-                        else:
-                            print(f"❌ Cannot assign autorole '{role.name}' to {member.display_name} - Role hierarchy issue. Move bot role higher or autorole lower.")
-                    else:
-                        print(f"❌ Bot doesn't have 'Manage Roles' permission in {member.guild.name}")
-                else:
-                    print(f"❌ Autorole with ID {role_id} not found in {member.guild.name}")
+                for role_id in role_ids:
+                    role = member.guild.get_role(role_id)
                     
-            except ValueError:
-                print(f"❌ Invalid autorole ID for {member.guild.name}: {self.data['autoroles'][guild_id]}")
-            except discord.Forbidden:
-                print(f"❌ No permission to assign autorole to {member.display_name}")
-            except discord.HTTPException as e:
-                print(f"❌ HTTP error assigning autorole to {member.display_name}: {e}")
+                    if role:
+                        # Check if bot has permission to assign the role
+                        if member.guild.me.guild_permissions.manage_roles:
+                            # More lenient hierarchy check - allow same position roles
+                            if role.position <= member.guild.me.top_role.position and role != member.guild.me.top_role:
+                                try:
+                                    await member.add_roles(role, reason=f"Autorole assignment for {member_type}")
+                                    print(f"✅ {member_type.capitalize()} autorole '{role.name}' successfully added to {member.display_name}")
+                                    roles_assigned += 1
+                                except discord.Forbidden:
+                                    print(f"❌ No permission to assign {member_type} autorole '{role.name}' to {member.display_name}")
+                                except discord.HTTPException as e:
+                                    print(f"❌ HTTP error assigning {member_type} autorole '{role.name}' to {member.display_name}: {e}")
+                            else:
+                                print(f"❌ Cannot assign {member_type} autorole '{role.name}' to {member.display_name} - Role hierarchy issue. Move bot role higher or autorole lower.")
+                        else:
+                            print(f"❌ Bot doesn't have 'Manage Roles' permission in {member.guild.name}")
+                            break  # No point checking other roles if no permission
+                    else:
+                        print(f"❌ {member_type.capitalize()} autorole with ID {role_id} not found in {member.guild.name}")
+                
+                if roles_assigned > 0:
+                    print(f"✅ Successfully assigned {roles_assigned}/{total_roles} {member_type} autoroles to {member.display_name}")
+                    
+            except ValueError as e:
+                print(f"❌ Invalid {member_type} autorole ID for {member.guild.name}: {self.data[autorole_key][guild_id]} - {e}")
             except Exception as e:
-                print(f"❌ Unexpected error with autorole for {member.display_name}: {e}")
+                print(f"❌ Unexpected error with {member_type} autorole for {member.display_name}: {e}")
         
         # Handle welcome message
         welcome_config = self.data.get('welcome', {}).get(guild_id)
@@ -550,6 +567,11 @@ class HelpSelect(Select):
                 value="mod"
             ),
             discord.SelectOption(
+                label="🔊 Music",
+                description="Music commands",
+                value="music"
+            ),
+            discord.SelectOption(
                 label="👑 Roles",
                 description="Role management commands",
                 value="roles"
@@ -577,7 +599,7 @@ class HelpSelect(Select):
 
         if value == "mod":
             embed = create_embed(
-                "<a:star:1407644764802912286> Moderation Commands",
+                "<a:Kabu_star:1400372359160008744> Moderation Commands",
                 "• Ban — Ban a user\n"
                 "• Kick — Kick a user\n"
                 "• Mute — Temp mute a user\n"
@@ -610,7 +632,8 @@ class HelpSelect(Select):
                 "• Roleinfo — Get role details\n"
                 "• Massrole — Add role to multiple users\n"
                 "• Autorole — Auto on join\n"
-                "• Removeautorole — Remove auto role\n"
+                "• Autoroleremove — Remove auto role\n"
+                "• Autorolebot — Auto on bot join\n"
                 "• Addcmd — Create custom role cmd\n"
                 "• Delcmd — Delete custom role cmd\n"
                 "• Listcmds — List all custom cmds\n"
@@ -655,7 +678,7 @@ class HelpSelect(Select):
 
         elif value == "setup":
             embed = create_embed(
-                "<a:star:1407644764802912286> Server Setup & Management",
+                 "<a:star:1407644764802912286> Server Setup & Management",
                 "• Embedadd — Create & save custom embed\n"
                 "• Embededit — Edit saved embed\n"
                 "• Embeddel — Delete saved embed\n"
@@ -685,11 +708,11 @@ async def help(ctx):
     embed = create_embed(
         "<a:flowers:1407646827481927680>**Kabu Help Menu**<a:flowers:1407646827481927680>",
         "Hey there! I'm **Kabu**, your friendly Discord companion.\n\n"
-        "<a:nc_dot:1407646088969719888> **Prefix:** `!`\n"
-        "<a:nc_dot:1407646088969719888> **Total Commands:** 80+\n\n"
-        "<a:dot:1407642445616906350> **Moderation & Roles** — keep server safe\n"
-        "<a:dot:1407642445616906350> **Fun & Social** — play & vibe\n"
-        "<a:dot:1407642445616906350> **Utility & Info** — quick tools & info\n\n"
+        "<a:dot:1407642445616906350> **Prefix:** `!`\n"
+        "<a:dot:1407642445616906350> **Total Commands:** 80+\n\n"
+        "<:vnx_pink_dot:1407706084281417788> **Moderation & Roles** — keep server safe\n"
+        "<:vnx_pink_dot:1407706084281417788> **Fun & Social** — play & vibe\n"
+        "<:vnx_pink_dot:1407706084281417788> **Utility & Info** — quick tools & info\n\n"
         "<:heart_blue3:1407643679660839033> Tip: Use dropdown below to browse commands!"
     )
     embed.set_footer(text="Designed & crafted by Onevibe 🫧")
