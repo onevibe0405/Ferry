@@ -193,7 +193,7 @@ async def massrole(ctx, role: str, users: commands.Greedy[discord.Member]):
     
     await progress_msg.edit(embed=result_embed)
 
-@commands.hybrid_command(name='autorole', description='Set autorole for new members')
+@commands.hybrid_command(name='autorole', description='Add autorole for new members')
 @app_commands.describe(role='Role to auto-assign to new members')
 async def autorole(ctx, *, role: str = None):
     if not await has_permissions(ctx, administrator=True):
@@ -203,29 +203,42 @@ async def autorole(ctx, *, role: str = None):
     guild_id = str(ctx.guild.id)
     
     if not role:
-        # Show current autorole
-        current_autorole = ctx.bot.data.get('autoroles', {}).get(guild_id)
-        if current_autorole:
-            role_obj = ctx.guild.get_role(int(current_autorole))
-            if role_obj:
-                embed = create_embed(f"{get_emoji('info')} Current Autorole", f"New members get: **{role_obj.name}**")
-            else:
-                embed = create_embed(f"{get_emoji('cross')} Autorole Not Found", "The autorole no longer exists!")
+        # Show current autoroles
+        current_autoroles = ctx.bot.data.get('autoroles', {}).get(guild_id, [])
+        if isinstance(current_autoroles, str):
+            # Convert old single autorole format to list
+            current_autoroles = [current_autoroles]
+            ctx.bot.data.setdefault('autoroles', {})[guild_id] = current_autoroles
+            save_data(ctx.bot.data)
+        
+        if current_autoroles:
+            autorole_list = []
+            for role_id in current_autoroles:
+                role_obj = ctx.guild.get_role(int(role_id))
+                if role_obj:
+                    autorole_list.append(f"• **{role_obj.name}** ({role_obj.mention})")
+                else:
+                    autorole_list.append(f"• Role not found (ID: {role_id})")
+            
+            embed = create_embed(
+                f"{get_emoji('info')} Current Autoroles", 
+                f"New members get these roles:\n\n" + "\n".join(autorole_list)
+            )
         else:
-            embed = create_embed(f"{get_emoji('info')} No Autorole", "No autorole is currently set")
+            embed = create_embed(f"{get_emoji('info')} No Autorole", "No autoroles are currently set")
         return await ctx.send(embed=embed)
     
     if role.lower() == "none" or role.lower() == "disable":
-        # Disable autorole
+        # Disable all autoroles
         if 'autoroles' not in ctx.bot.data:
             ctx.bot.data['autoroles'] = {}
         
         if guild_id in ctx.bot.data['autoroles']:
             del ctx.bot.data['autoroles'][guild_id]
             save_data(ctx.bot.data)
-            embed = create_embed(f"{get_emoji('tick')} Autorole Disabled", "Autorole has been disabled")
+            embed = create_embed(f"{get_emoji('tick')} All Autoroles Disabled", "All autoroles have been disabled")
         else:
-            embed = create_embed(f"{get_emoji('info')} No Autorole", "No autorole was set")
+            embed = create_embed(f"{get_emoji('info')} No Autoroles", "No autoroles were set")
         return await ctx.send(embed=embed)
     
     role_obj = parse_role_input(ctx.guild, role)
@@ -233,14 +246,28 @@ async def autorole(ctx, *, role: str = None):
         embed = create_embed(f"{get_emoji('cross')} Role Not Found", f"Role **{role}** doesn't exist!")
         return await ctx.send(embed=embed)
     
-    # Set autorole
+    # Initialize autoroles structure
     if 'autoroles' not in ctx.bot.data:
         ctx.bot.data['autoroles'] = {}
     
-    ctx.bot.data['autoroles'][guild_id] = str(role_obj.id)
+    # Get current autoroles for this guild
+    current_autoroles = ctx.bot.data['autoroles'].get(guild_id, [])
+    if isinstance(current_autoroles, str):
+        # Convert old single autorole format to list
+        current_autoroles = [current_autoroles]
+    
+    # Check if role is already in autoroles
+    role_id_str = str(role_obj.id)
+    if role_id_str in current_autoroles:
+        embed = create_embed(f"{get_emoji('cross')} Already Set", f"**{role_obj.name}** is already an autorole!")
+        return await ctx.send(embed=embed)
+    
+    # Add new autorole
+    current_autoroles.append(role_id_str)
+    ctx.bot.data['autoroles'][guild_id] = current_autoroles
     save_data(ctx.bot.data)
     
-    embed = create_embed(f"{get_emoji('tick')} Autorole Set", f"New members will get: **{role_obj.name}**")
+    embed = create_embed(f"{get_emoji('tick')} Autorole Added", f"**{role_obj.name}** added to autoroles!\nNew members will get this role automatically.")
     await ctx.send(embed=embed)
 
 # Pre-defined role assignment commands
@@ -289,6 +316,133 @@ async def toggle_role(ctx, user, role_name):
         embed = create_embed(f"{get_emoji('cross')} Error", f"I don't have permission to manage the **{role_name}** role!")
         await ctx.send(embed=embed)
 
+
+
+@commands.hybrid_command(name='autoroleremove', description='Remove specific autorole from this server')
+@app_commands.describe(role='Role to remove from autoroles (optional)')
+async def autoroleremove(ctx, *, role: str = None):
+    if not await has_permissions(ctx, administrator=True):
+        embed = create_embed(f"{get_emoji('cross')} No Permission", "You need **Administrator** permission!")
+        return await ctx.send(embed=embed)
+    
+    guild_id = str(ctx.guild.id)
+    
+    # Check if autoroles exist for this server
+    if 'autoroles' not in ctx.bot.data or guild_id not in ctx.bot.data['autoroles']:
+        embed = create_embed(f"{get_emoji('info')} No Autoroles", "No autoroles are set in this server")
+        return await ctx.send(embed=embed)
+    
+    current_autoroles = ctx.bot.data['autoroles'][guild_id]
+    if isinstance(current_autoroles, str):
+        # Convert old single autorole format to list
+        current_autoroles = [current_autoroles]
+        ctx.bot.data['autoroles'][guild_id] = current_autoroles
+    
+    if not current_autoroles:
+        embed = create_embed(f"{get_emoji('info')} No Autoroles", "No autoroles are set in this server")
+        return await ctx.send(embed=embed)
+    
+    if not role:
+        # Show all autoroles with options to remove
+        autorole_options = []
+        valid_autoroles = []
+        
+        for i, role_id in enumerate(current_autoroles):
+            role_obj = ctx.guild.get_role(int(role_id))
+            if role_obj:
+                autorole_options.append(f"`{i+1}.` **{role_obj.name}** ({role_obj.mention})")
+                valid_autoroles.append((role_id, role_obj.name))
+            else:
+                autorole_options.append(f"`{i+1}.` Role not found (ID: {role_id})")
+                valid_autoroles.append((role_id, f"Unknown Role (ID: {role_id})"))
+        
+        embed = create_embed(
+            f"{get_emoji('list')} Select Autorole to Remove",
+            f"Current autoroles:\n\n" + "\n".join(autorole_options) + 
+            f"\n\n**Usage:** `autoroleremove <role name/mention/ID>`\n" +
+            f"**Example:** `autoroleremove @Member`"
+        )
+        return await ctx.send(embed=embed)
+    
+    # Find and remove specific role
+    role_obj = parse_role_input(ctx.guild, role)
+    if not role_obj:
+        embed = create_embed(f"{get_emoji('cross')} Role Not Found", f"Role **{role}** doesn't exist!")
+        return await ctx.send(embed=embed)
+    
+    role_id_str = str(role_obj.id)
+    if role_id_str not in current_autoroles:
+        embed = create_embed(f"{get_emoji('cross')} Not an Autorole", f"**{role_obj.name}** is not set as an autorole!")
+        return await ctx.send(embed=embed)
+    
+    # Remove the specific autorole
+    current_autoroles.remove(role_id_str)
+    
+    if not current_autoroles:
+        # If no autoroles left, remove the entry entirely
+        del ctx.bot.data['autoroles'][guild_id]
+    else:
+        ctx.bot.data['autoroles'][guild_id] = current_autoroles
+    
+    save_data(ctx.bot.data)
+    
+    embed = create_embed(
+        f"{get_emoji('tick')} Autorole Removed",
+        f"Successfully removed **{role_obj.name}** from autoroles\n"
+        f"New members will no longer receive this role automatically"
+    )
+    await ctx.send(embed=embed)
+
+@commands.hybrid_command(name='autorolebot', description='Set autorole for new bots')
+@app_commands.describe(role='Role to auto-assign to new bots')
+async def autorolebot(ctx, *, role: str = None):
+    if not await has_permissions(ctx, administrator=True):
+        embed = create_embed(f"{get_emoji('cross')} No Permission", "You need **Administrator** permission!")
+        return await ctx.send(embed=embed)
+    
+    guild_id = str(ctx.guild.id)
+    
+    if not role:
+        # Show current bot autorole
+        current_autorole = ctx.bot.data.get('autoroles_bot', {}).get(guild_id)
+        if current_autorole:
+            role_obj = ctx.guild.get_role(int(current_autorole))
+            if role_obj:
+                embed = create_embed(f"{get_emoji('info')} Current Bot Autorole", f"New bots get: **{role_obj.name}**")
+            else:
+                embed = create_embed(f"{get_emoji('cross')} Bot Autorole Not Found", "The bot autorole no longer exists!")
+        else:
+            embed = create_embed(f"{get_emoji('info')} No Bot Autorole", "No bot autorole is currently set")
+        return await ctx.send(embed=embed)
+    
+    if role.lower() == "none" or role.lower() == "disable":
+        # Disable bot autorole
+        if 'autoroles_bot' not in ctx.bot.data:
+            ctx.bot.data['autoroles_bot'] = {}
+        
+        if guild_id in ctx.bot.data['autoroles_bot']:
+            del ctx.bot.data['autoroles_bot'][guild_id]
+            save_data(ctx.bot.data)
+            embed = create_embed(f"{get_emoji('tick')} Bot Autorole Disabled", "Bot autorole has been disabled")
+        else:
+            embed = create_embed(f"{get_emoji('info')} No Bot Autorole", "No bot autorole was set")
+        return await ctx.send(embed=embed)
+    
+    role_obj = parse_role_input(ctx.guild, role)
+    if not role_obj:
+        embed = create_embed(f"{get_emoji('cross')} Role Not Found", f"Role **{role}** doesn't exist!")
+        return await ctx.send(embed=embed)
+    
+    # Set bot autorole
+    if 'autoroles_bot' not in ctx.bot.data:
+        ctx.bot.data['autoroles_bot'] = {}
+    
+    ctx.bot.data['autoroles_bot'][guild_id] = str(role_obj.id)
+    save_data(ctx.bot.data)
+    
+    embed = create_embed(f"{get_emoji('tick')} Bot Autorole Set", f"New bots will get: **{role_obj.name}**")
+    await ctx.send(embed=embed)
+
 async def setup(bot):
     """Add role commands to bot"""
     bot.add_command(addrole)
@@ -297,6 +451,8 @@ async def setup(bot):
     bot.add_command(deleterole)
     bot.add_command(massrole)
     bot.add_command(autorole)
+    bot.add_command(autoroleremove)
+    bot.add_command(autorolebot)
     bot.add_command(gif)
     bot.add_command(img)
     bot.add_command(vce)
