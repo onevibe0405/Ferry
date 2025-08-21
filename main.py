@@ -209,6 +209,9 @@ class ModBot(commands.Bot):
     async def performance_monitor(self):
         """Monitor bot performance and latency"""
         try:
+            if not self.is_ready():
+                return
+                
             current_latency = self.latency * 1000
             self.latency_samples.append(current_latency)
             
@@ -218,7 +221,7 @@ class ModBot(commands.Bot):
             
             # Log performance every 5 minutes
             if len(self.latency_samples) % 5 == 0:
-                avg_latency = sum(self.latency_samples) / len(self.latency_samples)
+                avg_latency = sum(self.latency_samples) / len(self.latency_samples) if self.latency_samples else 0
                 print(f"Performance: {current_latency:.1f}ms current, {avg_latency:.1f}ms avg, {self.commands_used} commands")
                 
         except Exception as e:
@@ -231,19 +234,23 @@ class ModBot(commands.Bot):
     async def setup_hook(self):
         """Setup function called when bot is starting"""
         # Create HTTP session for better performance (optimized for hosting platforms)
-        connector = aiohttp.TCPConnector(
-            limit=100,
-            limit_per_host=10,
-            ttl_dns_cache=300,
-            use_dns_cache=True,
-            keepalive_timeout=60,  # Increased for hosting platforms
-            enable_cleanup_closed=True
-            # Optimized for hosting platforms - removed force_close conflict
-        )
-        self.session = aiohttp.ClientSession(
-            connector=connector,
-            timeout=aiohttp.ClientTimeout(total=30)  # Set timeout for hosting
-        )
+        try:
+            connector = aiohttp.TCPConnector(
+                limit=100,
+                limit_per_host=10,
+                ttl_dns_cache=300,
+                use_dns_cache=True,
+                keepalive_timeout=60,  # Increased for hosting platforms
+                enable_cleanup_closed=True
+                # Optimized for hosting platforms - removed force_close conflict
+            )
+            self.session = aiohttp.ClientSession(
+                connector=connector,
+                timeout=aiohttp.ClientTimeout(total=30)  # Set timeout for hosting
+            )
+        except Exception as e:
+            print(f"❌ Error creating HTTP session: {e}")
+            self.session = None
         
         # Voice commands disabled - removed music functionality
         # await self.load_extension("voice")
@@ -290,8 +297,12 @@ class ModBot(commands.Bot):
     @tasks.loop(seconds=60)  # Reduced frequency from 30s to 60s
     async def update_stats(self):
         """Update bot statistics periodically"""
-        update_bot_stats(self)
-        bot_stats['commands_used'] = self.commands_used
+        try:
+            if self.is_ready():
+                update_bot_stats(self)
+                bot_stats['commands_used'] = self.commands_used
+        except Exception as e:
+            print(f"❌ Error updating stats: {e}")
 
     @update_stats.before_loop
     async def before_update_stats(self):
@@ -428,11 +439,23 @@ class ModBot(commands.Bot):
                 # Handle both old single role format and new multiple roles format
                 role_ids = []
                 if isinstance(role_data, str):
-                    role_ids = [int(role_data)]
+                    try:
+                        role_ids = [int(role_data)]
+                    except ValueError:
+                        print(f"❌ Invalid role ID string: {role_data}")
+                        continue
                 elif isinstance(role_data, list):
-                    role_ids = [int(role_id) for role_id in role_data]
+                    for role_id in role_data:
+                        try:
+                            role_ids.append(int(role_id))
+                        except ValueError:
+                            print(f"❌ Invalid role ID in list: {role_id}")
                 else:
-                    role_ids = [role_data]  # Direct integer
+                    try:
+                        role_ids = [int(role_data)]  # Direct integer
+                    except (ValueError, TypeError):
+                        print(f"❌ Invalid role data type: {type(role_data)} - {role_data}")
+                        continue
                 
                 roles_assigned = 0
                 total_roles = len(role_ids)
