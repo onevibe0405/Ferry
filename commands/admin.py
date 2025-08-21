@@ -244,7 +244,20 @@ async def massban(ctx, user_ids: str, *, reason: str = "Mass ban"):
             user = await ctx.bot.fetch_user(user_id)
             await ctx.guild.ban(user, reason=f"{reason} - By {ctx.author}")
             success_count += 1
-        except:
+        except ValueError:
+            print(f"Invalid user ID: {user_id}")
+            failed_count += 1
+            continue
+        except discord.NotFound:
+            print(f"User not found: {user_id}")
+            failed_count += 1
+            continue
+        except discord.Forbidden:
+            print(f"No permission to ban user: {user_id}")
+            failed_count += 1
+            continue
+        except Exception as e:
+            print(f"Error banning user {user_id}: {e}")
             failed_count += 1
             continue
 
