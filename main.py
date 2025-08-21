@@ -323,7 +323,7 @@ class ModBot(commands.Bot):
         if self.user in message.mentions and not message.mention_everyone:
             if len(message.content.split()) == 1:
                 embed = create_embed(
-                    "🤖 Hello there!",
+                    "<:Bots:1407904145393844318> Hello there!",
                     f"My prefix is {get_current_prefix(message.guild.id)} or you can use slash commands!\n"
                     f"Type {get_current_prefix(message.guild.id)}help for a list of commands."
                 )
