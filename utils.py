@@ -257,7 +257,13 @@ def load_data():
                 'custom_commands': {},
                 'guild_prefixes': {},
                 'stolen_emojis': {},
-                'stolen_stickers': {}
+                'stolen_stickers': {},
+                'embeds': {},
+                'welcome': {},
+                'autoroles': {},
+                'autoroles_bot': {},
+                'aliases': {},
+                'gpd_enabled': {}
             }
             save_data(default_data)
             return default_data
@@ -271,12 +277,23 @@ def load_data():
             'custom_commands': {},
             'guild_prefixes': {},
             'stolen_emojis': {},
-            'stolen_stickers': {}
+            'stolen_stickers': {},
+            'embeds': {},
+            'welcome': {},
+            'autoroles': {},
+            'autoroles_bot': {},
+            'aliases': {},
+            'gpd_enabled': {}
         }
 
         for key, default_value in required_keys.items():
             if key not in data:
                 data[key] = default_value
+                print(f"🔧 Added missing key: {key}")
+
+        # Force save to ensure all keys are written
+        save_data(data)
+        print("💾 Data validated and saved after loading")
 
         return data
 
