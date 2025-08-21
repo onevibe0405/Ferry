@@ -67,6 +67,11 @@ class EmbedBuilderView(View):
             'timestamp': self.timestamp_enabled
         }
         save_data(self.bot.data)
+                
+        # Force reload data to ensure sync
+        from utils import load_data
+        self.bot.data = load_data()
+        
         await interaction.response.edit_message(content=f"✅ Embed `{self.name}` saved!", embed=None, view=None)
 
 # -----------------------------
