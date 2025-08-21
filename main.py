@@ -165,6 +165,18 @@ class ModBot(commands.Bot):
         # Load guild prefixes
         global guild_prefixes
         guild_prefixes = self.data.get('guild_prefixes', {})
+
+        # Ensure data persistence
+        self.force_save_data()
+        
+    def force_save_data(self):
+        """Force save all current data to ensure persistence"""
+        try:
+            from utils import save_data
+            save_data(self.data)
+            print("💾 Force saved all bot data on startup")
+        except Exception as e:
+            print(f"❌ Error force saving data: {e}")
         
         # Music system variables
         self.music_queues = {}
