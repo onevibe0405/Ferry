@@ -443,7 +443,7 @@ class ModBot(commands.Bot):
                         role_ids = [int(role_data)]
                     except ValueError:
                         print(f"❌ Invalid role ID string: {role_data}")
-                        continue
+                        return
                 elif isinstance(role_data, list):
                     for role_id in role_data:
                         try:
@@ -455,7 +455,7 @@ class ModBot(commands.Bot):
                         role_ids = [int(role_data)]  # Direct integer
                     except (ValueError, TypeError):
                         print(f"❌ Invalid role data type: {type(role_data)} - {role_data}")
-                        continue
+                        return
                 
                 roles_assigned = 0
                 total_roles = len(role_ids)
