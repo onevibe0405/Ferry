@@ -76,6 +76,9 @@ class EmbedDropdown(Select):
                     message_status = f"\n**Custom Message:** Set"
 
             save_data(self.bot.data)
+                        
+            # Force sync the data to ensure persistence
+            self.bot.data = load_data()
 
             embed = create_embed(
                 f"{get_emoji('tick')} Welcome Configured",
