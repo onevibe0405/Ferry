@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from discord.ui import View, Select
-from utils import has_permissions, get_emoji, create_embed, save_data
+from utils import has_permissions, get_emoji, create_embed, save_data, load_data
 
 # Dropdown View for Embed Selection
 class EmbedDropdownView(View):
