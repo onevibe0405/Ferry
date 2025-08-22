@@ -274,6 +274,46 @@ async def ttt(ctx, opponent: discord.Member):
     await ctx.send(embed=embed, view=view)
     
     # Note: Full reminder implementation would require background tasks
+@commands.hybrid_command(name="nickn", description="Change or reset someone's nickname (if allowed by role hierarchy)")
+@app_commands.describe(user="The user whose nickname you want to change or reset", nickname="The new nickname (leave empty to reset)")
+async def nickn(ctx, user: discord.Member, *, nickname: str = None):
+    # Check if bot can manage the user
+    if user.top_role >= ctx.guild.me.top_role:
+        embed = create_embed(
+            f"{get_emoji('cross')} Permission Error",
+            f"I can't change **{user.display_name}**'s nickname because their role is higher or equal to my role!"
+        )
+        return await ctx.send(embed=embed)
+
+    try:
+        old_name = user.display_name
+        if nickname:  # If nickname is provided
+            await user.edit(nick=nickname, reason=f"Nickname changed by {ctx.author}")
+            embed = create_embed(
+                f"{get_emoji('tick')} Nickname Changed",
+                f"**{old_name}** is now **{nickname}**"
+            )
+        else:  # If no nickname provided → reset
+            await user.edit(nick=None, reason=f"Nickname reset by {ctx.author}")
+            embed = create_embed(
+                f"{get_emoji('tick')} Nickname Reset",
+                f"**{old_name}**'s nickname has been reset to default username."
+            )
+
+        await ctx.send(embed=embed)
+
+    except discord.Forbidden:
+        embed = create_embed(
+            f"{get_emoji('cross')} Forbidden",
+            "I don't have permission to manage nicknames!"
+        )
+        await ctx.send(embed=embed)
+    except Exception as e:
+        embed = create_embed(
+            f"{get_emoji('cross')} Error",
+            f"An error occurred: {str(e)}"
+        )
+        await ctx.send(embed=embed)
 
 async def setup(bot):
     """Add fun commands to bot"""
@@ -286,3 +326,4 @@ async def setup(bot):
     bot.add_command(poll)
     bot.add_command(remind)
     bot.add_command(ttt)
+    bot.add_command(nickn)
