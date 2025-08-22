@@ -1,150 +1,15 @@
 {
   "guild_prefixes": {},
-  "custom_commands": {
-    "1395518660495278091": {
-      "mahila": {
-        "role": "Attractive   ?",
-        "role_id": 1396125970653774036
-      },
-      "special": {
-        "role": "Chosen Ones    ?",
-        "role_id": 1396127716800991283
-      }
-    },
-    "1390586788094935121": {
-      "mahila": {
-        "role": "She/her",
-        "role_id": 1390898011915288627
-      }
-    },
-    "1400468155385516102": {
-      "mahila": {
-        "role": "mahila",
-        "role_id": 1400476913650368566
-      },
-      "hehe": {
-        "role": "hehe",
-        "role_id": 1402254873722093669
-      },
-      "he": {
-        "role_id": 1401935020922245332,
-        "role_name": "He/him",
-        "description": "Custom role command",
-        "created_by": 957110332495630366
-      }
-    }
-  },
+  "custom_commands": {},
   "no_prefix_users": [
-    1170282568575352872,
-    711414054899417108,
-    1031177625269444670,
     957110332495630366
   ],
   "stolen_emojis": {},
   "stolen_stickers": {},
-  "aliases": {
-    "1390586788094935121": {
-      "nikal": "kick",
-      "chup": "mute"
-    },
-    "1394979675981217822": {},
-    "1400468155385516102": {}
-  },
-  "gpd_enabled": {
-    "1394979675981217822": true
-  },
-  "embeds": {
-    "1394979675981217822": {
-      "hii": {
-        "title": "Hi {user}",
-        "description": "{username}",
-        "color": null,
-        "thumbnail": "{user_avatar}",
-        "image": "",
-        "footer": "",
-        "author": {
-          "name": "",
-          "icon_url": ""
-        },
-        "timestamp": true
-      }
-    },
-    "1400468155385516102": {
-      "h": {
-        "title": "{user}",
-        "description": "",
-        "color": null,
-        "thumbnail": "",
-        "image": "",
-        "footer": "",
-        "author": {
-          "name": "",
-          "icon_url": ""
-        },
-        "timestamp": true
-      },
-      "hi": {
-        "title": "Hi {user}",
-        "description": "{username}",
-        "color": null,
-        "thumbnail": "",
-        "image": "",
-        "footer": "",
-        "author": {
-          "name": "",
-          "icon_url": ""
-        },
-        "timestamp": false
-      }
-    },
-    "hi": {
-      "title": "Title here",
-      "description": "Description here",
-      "footer": "Footer text here",
-      "author_name": "Onevibe",
-      "author_icon": "https://cdn.discordapp.com/avatars/957110332495630366/ef38a03b3b558d81c5061a36fbc54803.png?size=1024",
-      "color": 3447003
-    },
-    "hii": {
-      "title": "Title here",
-      "description": "Description here",
-      "footer": "Footer text here",
-      "author_name": "Onevibe",
-      "author_icon": "https://cdn.discordapp.com/avatars/957110332495630366/ef38a03b3b558d81c5061a36fbc54803.png?size=1024",
-      "color": 3447003
-    },
-    "1344711644919365724": {},
-    "1395518660495278091": {},
-    "1406119710159798343": {
-      "wlcm": {
-        "title": "Welcome {user}",
-        "description": "Swagat hai apka",
-        "color": "Ffffff",
-        "thumbnail": "{user_avatar}",
-        "image": "",
-        "footer": "",
-        "author": {
-          "name": "",
-          "icon_url": ""
-        },
-        "timestamp": true
-      }
-    }
-  },
-  "welcome": {
-    "1394979675981217822": {
-      "embed_name": "hii",
-      "channel_id": 1395711406229160077,
-      "enabled": true
-    },
-    "1406119710159798343": {
-      "embed_name": "wlcm",
-      "channel_id": 1406935091959173151,
-      "enabled": true,
-      "message": "welcome {user}"
-    }
-  },
-  "autoroles": {
-    "1406119710159798343": "1406934982055694431"
-  }
+  "aliases": {},
+  "gpd_enabled": {},
+  "embeds": {},
+  "welcome": {},
+  "autoroles": {},
+  "autoroles_bot": {}
 }
