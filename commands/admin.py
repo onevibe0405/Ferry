@@ -10,7 +10,7 @@ import asyncio
 import os
 import zipfile
 import io
-from utils import has_permissions, get_emoji, create_embed, save_data
+from utils import has_permissions, get_emoji, create_embed, save_data, guild_prefixes
 
 @commands.hybrid_command(name='purge', description='Delete multiple messages')
 @app_commands.describe(amount='Number of messages to delete (1-100)')
